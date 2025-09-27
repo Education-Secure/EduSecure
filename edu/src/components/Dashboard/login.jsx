@@ -19,7 +19,7 @@ const Login = ({ onCreateAccountClick }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        navigate("/home");
+        navigate("/index"); // Changed from "/home" to "/index"
       }
     });
     return () => unsubscribe(); // cleanup

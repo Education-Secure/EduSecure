@@ -1,17 +1,19 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Auth from "./components/Dashboard/Auth";
-import Home from "./components/Dashboard/Home"; // create this component
-import "./App.css";
+import Index from "./pages/Index";
+import Home from "./pages/Home";
+import NotFound from "./pages/NotFound";
 
-function App() {
-  return (
+const App = () => (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Auth />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/index" element={<Index />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  );
-}
+);
 
 export default App;
