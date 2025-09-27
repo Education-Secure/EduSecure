@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from '../../firebaseConfig'; // Adjust path as needed
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Avatar, AvatarFallback } from '../components/ui/Avatar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { User, Plus, Award, BookOpen, Briefcase } from 'lucide-react';
+import { User, Plus, Award, BookOpen, Briefcase, LogOut } from 'lucide-react';
 
 const skillCategories = [
   { name: 'Programming', skills: ['Python', 'JavaScript', 'React', 'Node.js'] },
@@ -15,12 +18,58 @@ const skillCategories = [
 
 function Navigation({ activeSection, onSectionChange }) {
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSkillSelect = (skill) => {
     console.log(`Starting to learn: ${skill}`);
     // Here you would typically add the skill to in-progress
     setIsSkillModalOpen(false);
   };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/'); // Navigate to home page after logout
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const getUserInitials = () => {
+    if (user?.displayName) {
+      return user.displayName.split(' ').map(name => name[0]).join('').toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
+  const getUserName = () => {
+    return user?.displayName || user?.email || 'User';
+  };
+
+  if (loading) {
+    return (
+      <nav className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="text-sm">Loading...</div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
@@ -114,7 +163,7 @@ function Navigation({ activeSection, onSectionChange }) {
                 <Button variant="profile" size="icon">
                   <Avatar className="w-8 h-8">
                     <AvatarFallback className="bg-skill-primary text-white text-sm">
-                      JD
+                      {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -124,12 +173,14 @@ function Navigation({ activeSection, onSectionChange }) {
                   <SheetTitle className="flex items-center space-x-3">
                     <Avatar className="w-12 h-12">
                       <AvatarFallback className="bg-skill-primary text-white">
-                        JD
+                        {getUserInitials()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold">John Doe</p>
-                      <p className="text-sm text-muted-foreground">Software Developer</p>
+                      <p className="font-semibold">{getUserName()}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {user?.email || 'Software Developer'}
+                      </p>
                     </div>
                   </SheetTitle>
                 </SheetHeader>
@@ -138,6 +189,7 @@ function Navigation({ activeSection, onSectionChange }) {
                     <User className="h-4 w-4 mr-3" />
                     View Profile
                   </Button>
+                  
                   <div className="border-t pt-4">
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
@@ -153,6 +205,18 @@ function Navigation({ activeSection, onSectionChange }) {
                         <Badge variant="outline">8</Badge>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Logout Button */}
+                  <div className="border-t pt-4">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-3" />
+                      Sign Out
+                    </Button>
                   </div>
                 </div>
               </SheetContent>
