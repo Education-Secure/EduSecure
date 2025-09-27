@@ -1,0 +1,88 @@
+/* Dashboard background */
+.dashboard {
+  width: 100%;
+  height: 100vh;
+  background-image: url("/IA.jpeg"); /* Image must be in public folder */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #ffffff;
+}
+
+/* Top navigation bar */
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: #00357a; /* transparent black over image */
+  display: flex;
+   height: 60px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+.nav-left .nav-btn {
+  background: transparent;
+  border: none;
+  color: #e5e5e5;
+  font-size: 20px;
+  margin-right: 20px;
+  cursor: pointer;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+}
+
+.add-skill-btn {
+  background-color: #fff;
+  border: none;
+  padding: 8px 14px;
+  margin-right: 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #000;
+  font-weight: bold;
+}
+
+/* User circle */
+.user-circle {
+  width: 42px; /* slightly bigger */
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  background: var(--brand-cyan);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+  font-size: 22px;
+  color: #fff;
+  cursor: default;
+  flex-shrink: 0; /* never shrink */
+}
+
+
+/* Welcome message in center */
+.welcome-message {
+  margin-top: 120px; /* space below nav */
+  text-align: center;
+}
+
+.welcome-message h1 {
+  font-size: 46px;
+  font-weight: bold;
+}
+
+.welcome-message p {
+  font-size: 18px;
+  margin-top: 10px;
+}
