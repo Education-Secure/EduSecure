@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { generateContent } from "../APIConfigs/AI";
+import { generateContent, chatWithTutor } from "../APIConfigs/AI";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "../../firebaseConfig"; // Adjust path as needed
+import { MessageCircle, X, Send } from "lucide-react";
 import "./roadmap.css";
 
 const RoadmapPage = ({ skill }) => {
@@ -12,6 +13,12 @@ const RoadmapPage = ({ skill }) => {
   const [loadingContent, setLoadingContent] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
   const [user, setUser] = useState(null);
+  
+  // Chatbot states
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
 
   // Get current user
   useEffect(() => {
@@ -92,6 +99,65 @@ const RoadmapPage = ({ skill }) => {
       console.error("Failed to fetch content:", err);
     } finally {
       setLoadingContent(false);
+    }
+  };
+
+  const handleChatSubmit = async (e) => {
+    e.preventDefault();
+    if (!chatInput.trim() || chatLoading) return;
+
+    const userMessage = {
+      id: Date.now(),
+      text: chatInput,
+      sender: 'user',
+      timestamp: new Date()
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput("");
+    setChatLoading(true);
+
+    try {
+      // Add context about current skill and selected topic
+      const contextualQuestion = selectedNode 
+        ? `In the context of learning ${skill}, specifically about "${selectedNode}": ${chatInput}`
+        : `In the context of learning ${skill}: ${chatInput}`;
+        
+      const response = await chatWithTutor(contextualQuestion);
+      
+      const botMessage = {
+        id: Date.now() + 1,
+        text: response.answer || response.message || "I'm sorry, I couldn't process that question.",
+        sender: 'bot',
+        timestamp: new Date()
+      };
+
+      setChatMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage = {
+        id: Date.now() + 1,
+        text: "Sorry, I'm having trouble connecting right now. Please try again.",
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+    if (!isChatOpen && chatMessages.length === 0) {
+      // Add welcome message when first opening
+      const welcomeMessage = {
+        id: Date.now(),
+        text: `Hi! I'm your ${skill} learning assistant. Feel free to ask me any questions about the topics in your roadmap!`,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setChatMessages([welcomeMessage]);
     }
   };
 
@@ -178,7 +244,18 @@ const RoadmapPage = ({ skill }) => {
         </div>
 
         <div className="roadmap-content">
-          <h2 className="content-title">Topic Details</h2>
+          <div className="content-header">
+            <h2 className="content-title">Topic Details</h2>
+            {/* Chatbot Toggle Button */}
+            <button
+              onClick={toggleChat}
+              className="chatbot-toggle"
+              title="Ask AI Assistant"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </button>
+          </div>
+          
           {loadingContent ? (
             <div className="loading-content">
               <div className="content-spinner"></div>
@@ -197,6 +274,78 @@ const RoadmapPage = ({ skill }) => {
           )}
         </div>
       </div>
+
+      {/* Chatbot Modal */}
+      {isChatOpen && (
+        <div className="chatbot-overlay" onClick={(e) => e.target === e.currentTarget && setIsChatOpen(false)}>
+          <div className="chatbot-modal">
+            <div className="chatbot-header">
+              <div className="flex items-center space-x-2">
+                <MessageCircle className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold">AI Learning Assistant</h3>
+                {selectedNode && (
+                  <span className="text-sm text-gray-500">• {selectedNode}</span>
+                )}
+              </div>
+              <button
+                onClick={() => setIsChatOpen(false)}
+                className="chatbot-close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="chatbot-messages">
+              {chatMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`chat-message ${message.sender === 'user' ? 'user-message' : 'bot-message'}`}
+                >
+                  <div className="message-content">
+                    {message.text}
+                  </div>
+                  <div className="message-time">
+                    {message.timestamp.toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
+                </div>
+              ))}
+              
+              {chatLoading && (
+                <div className="chat-message bot-message">
+                  <div className="message-content">
+                    <div className="typing-indicator">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <form onSubmit={handleChatSubmit} className="chatbot-input">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Ask me anything about this topic..."
+                className="chat-input-field"
+                disabled={chatLoading}
+              />
+              <button
+                type="submit"
+                disabled={chatLoading || !chatInput.trim()}
+                className="chat-send-button"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

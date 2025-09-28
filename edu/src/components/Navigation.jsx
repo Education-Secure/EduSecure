@@ -242,7 +242,7 @@ function Navigation({ activeSection, onSectionChange }) {
           {/* Logo */}
           <div className="flex items-center">
             <Award className="h-8 w-8 text-skill-primary mr-3" />
-            <h1 className="text-xl font-bold text-foreground">SkillTracker</h1>
+            <h1 className="text-xl font-bold text-foreground">EduSecure</h1>
           </div>
 
           {/* Main Navigation */}

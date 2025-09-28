@@ -43,7 +43,7 @@ const Home = () => {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
                 <Award className="h-5 w-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-white tracking-wide">SkillTracker</h1>
+              <h1 className="text-xl font-bold text-white tracking-wide">EduSecure</h1>
             </div>
             
             <div className="flex items-center space-x-4">
